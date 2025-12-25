@@ -1,54 +1,26 @@
-# photoin-booth-app
+# PhotoIn Booth App
 
-This template should help get you started developing with Vue 3 in Vite.
+PhotoIn is a browser-based photobooth web app that lets users choose a strip layout, take a set of photos, apply filters, and export the final photostrip.
 
-## Recommended IDE Setup
+## Features
 
-[VS Code](https://code.visualstudio.com/) + [Vue (Official)](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (and disable Vetur).
+- Choose layout (strip/grid options)
+- In-browser camera capture (mobile friendly)
+- Countdown timer + full-screen flash effect
+- Grid overlay + mirror toggle
+- Photo filters (CSS filters)
+- Photostrip preview with per-photo delete
+- Download photostrip as PNG
 
-## Recommended Browser Setup
+## Tech Stack
 
-- Chromium-based browsers (Chrome, Edge, Brave, etc.):
-  - [Vue.js devtools](https://chromewebstore.google.com/detail/vuejs-devtools/nhdogjmejiglipccpnnnanhbledajbpd) 
-  - [Turn on Custom Object Formatter in Chrome DevTools](http://bit.ly/object-formatters)
-- Firefox:
-  - [Vue.js devtools](https://addons.mozilla.org/en-US/firefox/addon/vue-js-devtools/)
-  - [Turn on Custom Object Formatter in Firefox DevTools](https://fxdx.dev/firefox-devtools-custom-object-formatters/)
+- Vue 3 + TypeScript
+- Vite
+- Tailwind CSS
+- Pinia + Vue Router
+- GSAP (UI animations)
 
-## Type Support for `.vue` Imports in TS
-
-TypeScript cannot handle type information for `.vue` imports by default, so we replace the `tsc` CLI with `vue-tsc` for type checking. In editors, we need [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) to make the TypeScript language service aware of `.vue` types.
-
-## Customize configuration
-
-See [Vite Configuration Reference](https://vite.dev/config/).
-
-## Project Setup
-
-```sh
-npm install
-```
-
-### Compile and Hot-Reload for Development
-
-```sh
-npm run dev
-```
-
-### Type-Check, Compile and Minify for Production
-
-```sh
-npm run build
-```
-
-### Run Unit Tests with [Vitest](https://vitest.dev/)
-
-```sh
-npm run test:unit
-```
-
-### Lint with [ESLint](https://eslint.org/)
-
-```sh
-npm run lint
-```
+## Notes / Troubleshooting
+- If the camera doesn’t open, make sure the browser has camera permission for the site.
+- Some mobile browsers require the page to be served from a secure origin to enable `getUserMedia`.
+- If download output includes UI controls, ensure export filtering is enabled in the download implementation.
