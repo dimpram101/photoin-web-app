@@ -148,6 +148,21 @@ watch(
             Privacy
           </router-link>
         </li>
+        <li>
+          <router-link
+            to="/choose-layout"
+            data-nav-link
+            data-path="/choose-layout"
+            class="relative z-10 rounded-full px-5 py-2 text-sm font-medium whitespace-nowrap transition-all duration-300"
+            :class="
+              $route.path === '/choose-layout'
+                ? 'text-blue-600'
+                : 'text-gray-600 hover:text-gray-900'
+            "
+          >
+            Layout
+          </router-link>
+        </li>
       </ul>
 
       <div class="flex items-center gap-2">
@@ -210,6 +225,16 @@ watch(
             @click="closeMobileMenu"
           >
             Privacy
+          </router-link>
+        </li>
+        <li>
+          <router-link
+            to="/choose-layout"
+            class="rounded-lg px-4 py-2 text-sm font-medium transition-colors"
+            :class="$route.path === '/choose-layout' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-700 hover:bg-white/60'"
+            @click="closeMobileMenu"
+          >
+            Layout
           </router-link>
         </li>
       </ul>

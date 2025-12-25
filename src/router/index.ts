@@ -27,6 +27,16 @@ const router = createRouter({
           name: 'privacy-policy',
           component: () => import('@/views/PrivacyPage.vue'),
         },
+        {
+          path: '/choose-layout',
+          name: 'choose-layout',
+          component: () => import('@/views/ChooseLayoutPage.vue'),
+        },
+        {
+          path: '/photo-session',
+          name: 'photo-session',
+          component: () => import('@/views/PhotoSessionPage.vue'),
+        },
       ],
     },
   ],
