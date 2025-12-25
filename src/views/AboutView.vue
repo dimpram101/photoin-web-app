@@ -1,3 +1,44 @@
+<script setup lang="ts">
+import { ChevronDown } from 'lucide-vue-next';
+import { ref } from 'vue';
+
+type FaqItem = {
+  question: string;
+  answer: string;
+};
+
+const faqItems: FaqItem[] = [
+  {
+    question: 'Is PhotoIn free to use?',
+    answer: 'Yes. PhotoIn is free to use in your browser.',
+  },
+  {
+    question: 'Do you store my photos?',
+    answer: 'No. Your photos are processed locally in your browser and are only saved when you download them.',
+  },
+  {
+    question: 'Can I use PhotoIn on my mobile phone?',
+    answer: 'Yes, on most modern mobile browsers. Make sure you allow camera permission when prompted.',
+  },
+  {
+    question: "My camera isn't working. What should I do?",
+    answer:
+      "Check browser permissions, refresh the page, and close other apps/tabs that might be using the camera. If you're on mobile, try switching browsers (Chrome/Safari) and ensure you're on a secure (HTTPS) site.",
+  },
+  {
+    question: 'Can I customize the photo strip?',
+    answer:
+      'You can choose a layout and background style, and apply filters while taking photos. More customization options may be added later.',
+  },
+];
+
+const openFaqIndex = ref<number | null>(0);
+
+function toggleFaq(index: number) {
+  openFaqIndex.value = openFaqIndex.value === index ? null : index;
+}
+</script>
+
 <template>
   <div class="relative mx-auto flex h-full w-[90vw] max-w-7xl flex-col pt-32">
     <div class="mx-auto w-full max-w-5xl">
@@ -95,7 +136,7 @@
           <div class="mt-4 grid gap-2 text-sm">
             <a
               class="inline-flex items-center justify-between rounded-xl bg-white/70 px-4 py-3 text-slate-700 shadow-sm ring-1 ring-slate-200 transition-colors hover:bg-white"
-              href="https://github.com/"
+              href="https://github.com/dimpram101"
               target="_blank"
               rel="noopener"
             >
@@ -105,8 +146,50 @@
             <div
               class="inline-flex items-center justify-between rounded-xl bg-white/70 px-4 py-3 text-slate-700 shadow-sm ring-1 ring-slate-200"
             >
-              <span class="font-medium">Email</span>
-              <span class="text-slate-400">hello@example.com</span>
+              <span class="font-medium">Instagram</span>
+              <span class="text-slate-400">@dimpram_</span>
+            </div>
+          </div>
+        </section>
+
+        <section class="rounded-2xl bg-white/70 p-6 shadow-sm ring-1 ring-slate-200 backdrop-blur md:col-span-2">
+          <h3 class="font-poppins text-lg font-bold text-slate-900">FAQ</h3>
+          <p class="mt-3 text-sm leading-relaxed text-slate-600">Quick answers to common questions.</p>
+
+          <div class="mt-4 space-y-2 text-sm">
+            <div
+              v-for="(item, index) in faqItems"
+              :key="item.question"
+              class="rounded-xl bg-white/70 px-4 py-3 shadow-sm ring-1 ring-slate-200"
+            >
+              <button
+                type="button"
+                class="flex w-full items-center justify-between gap-3 text-left"
+                :aria-expanded="openFaqIndex === index"
+                :aria-controls="`faq-panel-${index}`"
+                @click="toggleFaq(index)"
+              >
+                <span class="font-semibold text-slate-800">{{ item.question }}</span>
+                <ChevronDown
+                  class="h-4 w-4 shrink-0 text-slate-500 transition-transform duration-200"
+                  :class="openFaqIndex === index ? 'rotate-180' : 'rotate-0'"
+                />
+              </button>
+
+              <Transition
+                enter-active-class="transition-all duration-250 ease-out"
+                enter-from-class="max-h-0 opacity-0 translate-y-1"
+                enter-to-class="max-h-60 opacity-100 translate-y-0"
+                leave-active-class="transition-all duration-200 ease-in"
+                leave-from-class="max-h-60 opacity-100 translate-y-0"
+                leave-to-class="max-h-0 opacity-0 translate-y-1"
+              >
+                <div v-if="openFaqIndex === index" :id="`faq-panel-${index}`" class="overflow-hidden">
+                  <p class="mt-2 text-slate-600">
+                    {{ item.answer }}
+                  </p>
+                </div>
+              </Transition>
             </div>
           </div>
         </section>
