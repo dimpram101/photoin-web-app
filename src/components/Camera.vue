@@ -167,7 +167,7 @@ onUnmounted(() => {
 });
 
 function getCameraContainerStyle() {
-  const baseStyle = { width: '100%', 'min-width': '320px' };
+  const baseStyle = { width: '100%', 'max-width': '100%' };
 
   switch (props.selectedLayout.type) {
     case 'strip-4':
@@ -192,13 +192,13 @@ function getCameraContainerStyle() {
     ></div>
   </Teleport>
 
-  <div class="rounded-lg bg-white p-4">
+  <div class="rounded-lg bg-white p-2 sm:p-4">
     <div class="relative flex w-full flex-col items-center justify-center bg-black">
       <div
         class="pointer-events-none absolute top-4 right-4 left-4 z-10 flex items-center justify-between opacity-0"
       ></div>
 
-      <div class="relative w-full overflow-hidden" :style="getCameraContainerStyle()">
+      <div class="relative mx-auto w-full overflow-hidden" :style="getCameraContainerStyle()">
         <video
           ref="videoRef"
           autoplay
