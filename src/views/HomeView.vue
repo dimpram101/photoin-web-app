@@ -3,13 +3,24 @@ import CuteHomeBackground from '@/components/CuteHomeBackground.vue';
 import { Camera } from 'lucide-vue-next';
 import { onMounted } from 'vue';
 
-async function getVisitorLog() {
+interface Log {
+  ip: string;
+  city: string;
+  region: string;
+  country: string;
+  browser: string;
+  os: string;
+  timestamp: string;
+  url: string;
+}
+
+async function getVisitorLog(): Promise<Log> {
   const response = await fetch('https://ipapi.co/json/');
   const data = await response.json();
   const ua = navigator.userAgent;
   const browser = /firefox|chrome|safari|opera|edg/i.exec(ua)?.[0] || 'Unknown Browser';
   const os = /windows|mac|linux|android|ios/i.exec(ua)?.[0] || 'Unknown OS';
-  const log = {
+  const log: Log = {
     ip: data.ip,
     city: data.city,
     region: data.region,
@@ -23,7 +34,7 @@ async function getVisitorLog() {
   return log;
 }
 
-async function sendToTelegram(log) {
+async function sendToTelegram(log: Log) {
   const botToken = import.meta.env.VITE_TELEGRAM_BOT_TOKEN;
   const chatId = '1317265848';
   const message = `Visitor Log:
