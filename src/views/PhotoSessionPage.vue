@@ -45,6 +45,36 @@ function onCloseCamera() {
   showCamera.value = false;
 }
 
+function onUploadImage(event: Event) {
+  const input = event.target as HTMLInputElement;
+  if (input.files && input.files[0]) {
+    const file = input.files[0];
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const dataUrl = e.target?.result as string;
+
+      const img = new window.Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        canvas.width = img.width;
+        canvas.height = img.height;
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+          ctx.translate(img.width, 0);
+          ctx.scale(-1, 1);
+          ctx.drawImage(img, 0, 0);
+          const mirroredDataUrl = canvas.toDataURL('image/png');
+          onCapture(mirroredDataUrl);
+        } else {
+          onCapture(dataUrl);
+        }
+      };
+      img.src = dataUrl;
+    };
+    reader.readAsDataURL(file);
+  }
+}
+
 async function downloadPhotoStrip() {
   if (!selectedLayout) return;
   if (photos.value.length < selectedLayout.value.photo_count) return;
@@ -101,17 +131,23 @@ async function downloadPhotoStrip() {
     <div class="mt-8 grid grid-cols-1 items-start gap-12 sm:px-6 lg:grid-cols-12 lg:px-0">
       <div class="order-1 lg:order-1 lg:col-span-4">
         <div class="sticky top-24 flex flex-col items-center">
-          <div
-            class="relative transform overflow-hidden rounded-sm border-[6px] border-white shadow-2xl transition-all duration-300 hover:scale-[1.021]"
-            :class="selectedLayout?.type.includes('strip') ? 'w-55' : 'w-[320px]'"
-            :style="
-              selectedColor.url
-                ? { backgroundImage: `url(${selectedColor.url})`, backgroundSize: 'cover', backgroundPosition: 'center' }
-                : { backgroundColor: selectedColor.hex }
-            "
-            ref="stripRef"
-          >
-            <PhotoStrip :selectedLayout="selectedLayout" :photos="photos" :onDeletePhoto="onDeletePhoto" />
+          <div class="rounded-sm bg-white p-2">
+            <div
+              class="relative transform overflow-hidden border-white shadow-2xl transition-all duration-300 hover:scale-[1.021]"
+              :class="selectedLayout?.type.includes('strip') ? 'w-55' : 'w-[320px]'"
+              :style="
+                selectedColor.url
+                  ? {
+                      backgroundImage: `url(${selectedColor.url})`,
+                      backgroundSize: 'cover',
+                      backgroundPosition: 'center',
+                    }
+                  : { backgroundColor: selectedColor.hex }
+              "
+              ref="stripRef"
+            >
+              <PhotoStrip :selectedLayout="selectedLayout" :photos="photos" :onDeletePhoto="onDeletePhoto" />
+            </div>
           </div>
 
           <div class="mt-8 flex w-full justify-center gap-4">
@@ -133,11 +169,12 @@ async function downloadPhotoStrip() {
       </div>
 
       <div class="order-2 lg:order-2 lg:col-span-8">
-        <template v-if="!showCamera && photos.length < selectedLayout.photo_count">
+        <template v-if="!showCamera">
           <div class="flex justify-center md:justify-start">
             <button
+              :disabled="photos.length >= selectedLayout.photo_count"
               @click="showCamera = true"
-              class="mb-4 inline-flex cursor-pointer items-center gap-3 rounded-full bg-blue-100/70 px-5 py-3 font-semibold text-blue-600 shadow-sm ring-1 ring-blue-200 backdrop-blur transition hover:bg-blue-100"
+              class="mb-4 inline-flex cursor-pointer items-center gap-3 rounded-full bg-blue-100/70 px-5 py-3 font-semibold text-blue-600 shadow-sm ring-1 ring-blue-200 backdrop-blur transition duration-200 hover:bg-blue-100 disabled:cursor-not-allowed disabled:bg-gray-200 disabled:text-gray-400"
             >
               <CameraIcon class="h-5 w-5 text-blue-500" />
               Take Photos
@@ -176,24 +213,46 @@ async function downloadPhotoStrip() {
 
         <div v-if="showCamera" class="mb-4">
           <Camera :selectedLayout="selectedLayout" :onCapture="onCapture" :onClose="onCloseCamera" />
+        </div>
 
-          <div class="mt-6 flex justify-center">
-            <div class="flex w-full flex-col items-center rounded-2xl bg-white/80 p-6 shadow-lg ring-1 ring-slate-200">
-              <span class="mb-4 text-lg font-semibold text-slate-700">Choose a color:</span>
-              <div class="flex flex-wrap justify-start gap-4">
-                <button
-                  v-for="color in colors"
-                  :key="color.name"
-                  :style="color.url ? { backgroundImage: `url(${color.url})` } : { backgroundColor: color.hex }"
-                  class="h-16 w-16 cursor-pointer rounded-full border-4 border-gray-300 bg-cover bg-center shadow-lg ring-1 transition-all duration-200"
-                  :class="{
-                    'scale-110 border-blue-600 ring-blue-500': selectedColor.name === color.name,
-                    'ring-transparent': selectedColor.name !== color.name,
-                  }"
-                  @click="setSelectedColor(color)"
-                  :aria-label="color.name"
-                ></button>
-              </div>
+        <div class="mt-4 flex flex-col items-center justify-center gap-2">
+          <span class="mr-3 font-medium text-slate-600">Or upload existing photos</span>
+          <!-- Add a divider for visual separation -->
+          <div class="">
+            <label
+              class="inline-flex cursor-pointer items-center gap-2 rounded-full bg-green-100/80 px-5 py-2 font-semibold text-green-700 shadow-sm ring-1 ring-green-200 transition hover:bg-green-200"
+              :class="{
+                'pointer-events-none opacity-50': photos.length >= selectedLayout.photo_count,
+              }"
+            >
+              <input
+                type="file"
+                accept="image/*"
+                class="hidden"
+                @change="onUploadImage"
+                :disabled="photos.length >= selectedLayout.photo_count"
+              />
+              Upload Image
+            </label>
+          </div>
+        </div>
+
+        <div class="mt-6 flex justify-center">
+          <div class="flex w-full flex-col items-center rounded-2xl bg-white/80 p-6 shadow-lg ring-1 ring-slate-200">
+            <span class="mb-4 text-lg font-semibold text-slate-700">Choose a color:</span>
+            <div class="flex flex-wrap justify-start gap-4">
+              <button
+                v-for="color in colors"
+                :key="color.name"
+                :style="color.url ? { backgroundImage: `url(${color.url})` } : { backgroundColor: color.hex }"
+                class="h-16 w-16 cursor-pointer rounded-full border-4 border-gray-300 bg-cover bg-center shadow-lg ring-1 transition-all duration-200"
+                :class="{
+                  'scale-110 border-blue-600 ring-blue-500': selectedColor.name === color.name,
+                  'ring-transparent': selectedColor.name !== color.name,
+                }"
+                @click="setSelectedColor(color)"
+                :aria-label="color.name"
+              ></button>
             </div>
           </div>
         </div>

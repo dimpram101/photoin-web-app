@@ -21,7 +21,7 @@ export const STRIP_LAYOUTS: StripLayout[] = [
     aspect_ratio: 0.33333333,
     css_class: 'strip-4',
     preview_image_url:
-      'https://jdpwcysfkjqvnjtmkmle.supabase.co/storage/v1/object/public/LayoutType/spotlight/type%201.png\r\n',
+      '/testimoni/1.png',
     created_at: '2025-12-22T13:43:20.360125+00:00',
     display_order: 1,
   },
@@ -34,7 +34,7 @@ export const STRIP_LAYOUTS: StripLayout[] = [
     aspect_ratio: 0.33333333,
     css_class: 'strip-2',
     preview_image_url:
-      'https://jdpwcysfkjqvnjtmkmle.supabase.co/storage/v1/object/public/LayoutType/spotlight/type%202.png\r\n',
+      '/testimoni/2.png',
     created_at: '2025-12-22T13:43:20.360125+00:00',
     display_order: 2,
   },
@@ -47,7 +47,7 @@ export const STRIP_LAYOUTS: StripLayout[] = [
     aspect_ratio: 0.66666667,
     css_class: 'grid-6',
     preview_image_url:
-      'https://jdpwcysfkjqvnjtmkmle.supabase.co/storage/v1/object/public/LayoutType/spotlight/type%203.png\r\n',
+      '/testimoni/3.png',
     created_at: '2025-12-22T13:43:20.360125+00:00',
     display_order: 3,
   },
@@ -60,7 +60,7 @@ export const STRIP_LAYOUTS: StripLayout[] = [
     aspect_ratio: 0.66666667,
     css_class: 'grid-4',
     preview_image_url:
-      'https://jdpwcysfkjqvnjtmkmle.supabase.co/storage/v1/object/public/LayoutType/spotlight/type%204.png',
+      '/testimoni/4.png',
     created_at: '2025-12-22T13:43:20.360125+00:00',
     display_order: 4,
   },
