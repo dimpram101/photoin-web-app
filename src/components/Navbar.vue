@@ -30,7 +30,7 @@ onUnmounted(() => {
       'fixed top-4 left-1/2 z-50 -translate-x-1/2 font-poppins transition-all duration-300',
       isScrolled ? 'bg-white/95 shadow-2xl backdrop-blur-xl' : 'bg-white/70 shadow-lg backdrop-blur-md',
     ]"
-    class="w-[92vw] max-w-6xl rounded-2xl border border-gray-200/50 px-4 py-3 sm:px-6"
+    class="w-[90vw] max-w-7xl rounded-2xl border border-gray-200/50 px-4 py-3 sm:px-6"
   >
     <div class="flex items-center justify-between gap-3">
       <!-- Logo -->

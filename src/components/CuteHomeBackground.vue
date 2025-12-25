@@ -103,9 +103,9 @@ onBeforeUnmount(() => {
         <slot class="flex-1" />
       </div>
 
-      <!-- <footer class="text-center text-sm text-slate-400 pb-4">
+      <footer class="text-center text-sm text-slate-400 pb-4">
         Follow me on Instagram @dimpram_
-      </footer> -->
+      </footer>
     </div>
   </div>
 </template>
