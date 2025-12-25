@@ -53,6 +53,7 @@ const chooseLayout = async (layoutType: (typeof layouts)[number]['type']) => {
 						<div
 							class="relative w-full overflow-hidden rounded-2xl bg-white/70 shadow-sm ring-1 ring-slate-200 transition-all duration-300 group-hover:ring-slate-300"
 							:class="layout.cssClass"
+							:style="{ aspectRatio: String(layout.aspectRatio) }"
 						>
 							<img
 								:src="layout.previewImage"

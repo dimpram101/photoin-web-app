@@ -7,50 +7,54 @@ export interface LayoutConfig {
   aspectRatio: number;
   cssClass: string;
   previewImage: string;
+  displayOrder?: number;
 }
 
 export const LAYOUTS: LayoutConfig[] = [
   {
-    id: 'the-signature',
+    id: 'strip-4',
     type: 'strip-4',
     title: 'The Signature',
-    description: '2×6 strip, 4 photos vertically.',
+    description: 'Size 2 x 6 Strip (4 Pose)',
     photoCount: 4,
-    aspectRatio: 2 / 6,
-    cssClass: 'aspect-[2/6]',
-    previewImage: '/icons/sticker22.png',
+    aspectRatio: 0.33333333,
+    cssClass: 'strip-4',
+    previewImage: 'https://jdpwcysfkjqvnjtmkmle.supabase.co/storage/v1/object/public/LayoutType/spotlight/type%201.png',
+    displayOrder: 1,
   },
   {
-    id: 'portrait-mode',
+    id: 'strip-2',
     type: 'strip-2',
     title: 'Portrait Mode',
-    description: '2×6 strip, 2 photos vertically.',
+    description: 'Size 6 x 2 Strip (2 Pose)',
     photoCount: 2,
-    aspectRatio: 2 / 6,
-    cssClass: 'aspect-[2/6]',
-    previewImage: '/icons/hedgehog.png',
+    aspectRatio: 0.33333333,
+    cssClass: 'strip-2',
+    previewImage: 'https://jdpwcysfkjqvnjtmkmle.supabase.co/storage/v1/object/public/LayoutType/spotlight/type%202.png',
+    displayOrder: 2,
   },
   {
-    id: 'mix-and-match',
+    id: 'grid-6',
     type: 'grid-6',
     title: 'Mix & Match',
-    description: '4×6 grid, 6 photos (2×3).',
+    description: 'Size 6 x 4 Strip (6 Pose)',
     photoCount: 6,
-    aspectRatio: 4 / 6,
-    cssClass: 'aspect-[4/6]',
-    previewImage: '/icons/flower.png',
+    aspectRatio: 0.66666667,
+    cssClass: 'grid-6',
+    previewImage: 'https://jdpwcysfkjqvnjtmkmle.supabase.co/storage/v1/object/public/LayoutType/spotlight/type%203.png',
+    displayOrder: 3,
   },
   {
-    id: 'quad-grid',
+    id: 'grid-4',
     type: 'grid-4',
     title: 'Quad Grid',
-    description: '4×6 grid, 4 photos (2×2).',
+    description: 'Size 6 x 4 Strip (4 Pose)',
     photoCount: 4,
-    aspectRatio: 4 / 6,
-    cssClass: 'aspect-[4/6]',
-    previewImage: '/icons/cat.png',
+    aspectRatio: 0.66666667,
+    cssClass: 'grid-4',
+    previewImage: 'https://jdpwcysfkjqvnjtmkmle.supabase.co/storage/v1/object/public/LayoutType/spotlight/type%204.png',
+    displayOrder: 4,
   },
 ];
 
-export const isPopularLayout = (layout: LayoutConfig) =>
-  layout.type === 'strip-4' || layout.type === 'grid-6';
+export const isPopularLayout = (layout: LayoutConfig) => layout.type === 'strip-4' || layout.type === 'grid-6';
