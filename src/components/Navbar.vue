@@ -1,13 +1,43 @@
 <!-- eslint-disable vue/multi-word-component-names -->
 <script setup lang="ts">
 import { Github, Menu, X } from 'lucide-vue-next';
-import { onMounted, onUnmounted, ref } from 'vue';
+import { nextTick, onMounted, onUnmounted, ref, watch } from 'vue';
+import { useRoute } from 'vue-router';
+
+const route = useRoute();
 
 const isScrolled = ref(false);
 const isMobileMenuOpen = ref(false);
 
+const desktopNavEl = ref<HTMLElement | null>(null);
+const desktopIndicatorStyle = ref<Record<string, string>>({ opacity: '0' });
+
 const handleScroll = () => {
   isScrolled.value = window.scrollY > 20;
+};
+
+const updateDesktopIndicator = () => {
+  if (!desktopNavEl.value) return;
+
+  const activeEl = desktopNavEl.value.querySelector(
+    `a[data-nav-link][data-path="${route.path}"]`,
+  ) as HTMLElement | null;
+
+  if (!activeEl) {
+    desktopIndicatorStyle.value = { opacity: '0' };
+    return;
+  }
+
+  const navRect = desktopNavEl.value.getBoundingClientRect();
+  const activeRect = activeEl.getBoundingClientRect();
+  const left = activeRect.left - navRect.left;
+  const width = activeRect.width;
+
+  desktopIndicatorStyle.value = {
+    opacity: '1',
+    width: `${width}px`,
+    transform: `translateX(${left}px)`,
+  };
 };
 
 const closeMobileMenu = () => {
@@ -17,11 +47,27 @@ const closeMobileMenu = () => {
 onMounted(() => {
   handleScroll();
   window.addEventListener('scroll', handleScroll, { passive: true });
+
+  nextTick(() => {
+    updateDesktopIndicator();
+  });
+
+  window.addEventListener('resize', updateDesktopIndicator, { passive: true });
 });
 
 onUnmounted(() => {
   window.removeEventListener('scroll', handleScroll);
+  window.removeEventListener('resize', updateDesktopIndicator);
 });
+
+watch(
+  () => route.path,
+  async () => {
+    await nextTick();
+    updateDesktopIndicator();
+  },
+  { immediate: true },
+);
 </script>
 
 <template>
@@ -48,15 +94,25 @@ onUnmounted(() => {
       </router-link>
 
       <!-- Navigation Links (Desktop) -->
-      <ul class="hidden items-center gap-1 rounded-full bg-gray-100/60 py-1.5 md:flex">
+      <ul
+        ref="desktopNavEl"
+        class="relative hidden items-center gap-1 rounded-full bg-gray-100/60 py-1.5 md:flex"
+      >
+        <div
+          aria-hidden="true"
+          class="pointer-events-none absolute inset-y-1 left-0 rounded-full bg-white shadow-sm transition-all duration-300 ease-out"
+          :style="desktopIndicatorStyle"
+        />
         <li>
           <router-link
             to="/"
-            class="rounded-full px-5 py-2 text-sm font-medium transition-all duration-200"
+            data-nav-link
+            data-path="/"
+            class="relative z-10 rounded-full px-5 py-2 text-sm font-medium transition-all duration-300"
             :class="
               $route.path === '/'
-                ? 'bg-white text-blue-600 shadow-sm'
-                : 'text-gray-600 hover:bg-white/50 hover:text-gray-900'
+                ? 'text-blue-600'
+                : 'text-gray-600 hover:text-gray-900'
             "
           >
             Home
@@ -65,11 +121,13 @@ onUnmounted(() => {
         <li>
           <router-link
             to="/about"
-            class="rounded-full px-5 py-2 text-sm font-medium transition-all duration-200"
+            data-nav-link
+            data-path="/about"
+            class="relative z-10 rounded-full px-5 py-2 text-sm font-medium transition-all duration-300"
             :class="
               $route.path === '/about'
-                ? 'bg-white text-blue-600 shadow-sm'
-                : 'text-gray-600 hover:bg-white/50 hover:text-gray-900'
+                ? 'text-blue-600'
+                : 'text-gray-600 hover:text-gray-900'
             "
           >
             About
@@ -78,11 +136,13 @@ onUnmounted(() => {
         <li>
           <router-link
             to="/privacy-policy"
-            class="rounded-full px-5 py-2 text-sm font-medium whitespace-nowrap transition-all duration-200"
+            data-nav-link
+            data-path="/privacy-policy"
+            class="relative z-10 rounded-full px-5 py-2 text-sm font-medium whitespace-nowrap transition-all duration-300"
             :class="
               $route.path === '/privacy-policy'
-                ? 'bg-white text-blue-600 shadow-sm'
-                : 'text-gray-600 hover:bg-white/50 hover:text-gray-900'
+                ? 'text-blue-600'
+                : 'text-gray-600 hover:text-gray-900'
             "
           >
             Privacy

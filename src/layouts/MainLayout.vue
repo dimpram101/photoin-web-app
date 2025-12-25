@@ -11,14 +11,14 @@ const showFooter = computed(() => {
 </script>
 
 <template>
-  <div class="min-h-screen bg-gray-50 flex flex-col">
+  <div class="min-h-screen bg-[#F5F5F5] flex flex-col">
     <Navbar />
 
     <main class="flex-1 flex flex-col">
       <router-view />
     </main>
     <footer v-if="showFooter" class="py-4 text-center text-sm text-gray-500">
-      &copy; 2024 PhotoIn. All rights reserved.
+      Follow me on Instagram @dimpram_
     </footer>
   </div>
 </template>
