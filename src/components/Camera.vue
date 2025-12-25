@@ -2,7 +2,7 @@
 <script setup lang="ts">
 import { StripLayout } from '@/lib/strip_layout';
 import { FlipHorizontal, Grid, Sparkle, X } from 'lucide-vue-next';
-import { onMounted, onUnmounted, ref } from 'vue';
+import { nextTick, onMounted, onUnmounted, ref } from 'vue';
 
 const props = defineProps<{
   onCapture: (photoUrl: string) => void;
@@ -59,7 +59,11 @@ function startCountdown() {
   }, 1000);
 }
 
-function takePhoto() {
+function sleep(ms: number) {
+  return new Promise<void>((resolve) => setTimeout(resolve, ms));
+}
+
+async function takePhoto() {
   if (!videoRef.value) return;
 
   const canvas = canvasRef.value;
@@ -98,21 +102,26 @@ function takePhoto() {
   ctx.filter = activeFilter.value.value;
 
   isFlashing.value = true;
+  await nextTick();
+  await sleep(500);
 
-  // Mirror the image if needed
-  if (!isMirrored.value) {
-    ctx.translate(renderWidth, 0);
-    ctx.scale(-1, 1);
+  try {
+    // Mirror the image if needed
+    if (!isMirrored.value) {
+      ctx.translate(renderWidth, 0);
+      ctx.scale(-1, 1);
+    }
+
+    ctx.drawImage(video, offsetX, offsetY, renderWidth, renderHeight, 0, 0, renderWidth, renderHeight);
+
+    const photoDataUrl = canvas.toDataURL('image/png', 0.9);
+    console.log('Photo captured:', photoDataUrl);
+    props.onCapture(photoDataUrl);
+  } finally {
+    setTimeout(() => {
+      isFlashing.value = false;
+    }, 120);
   }
-
-  ctx.drawImage(video, offsetX, offsetY, renderWidth, renderHeight, 0, 0, renderWidth, renderHeight);
-
-  const photoDataUrl = canvas.toDataURL('image/png', 0.9);
-  console.log('Photo captured:', photoDataUrl);
-  setTimeout(() => {
-    isFlashing.value = false;
-  }, 200);
-  props.onCapture(photoDataUrl);
 }
 
 async function startCamera() {
@@ -176,6 +185,13 @@ function getCameraContainerStyle() {
 </script>
 
 <template>
+  <Teleport to="body">
+    <div
+      v-if="isFlashing"
+      class="pointer-events-none fixed inset-0 z-9999 bg-white opacity-95 transition-opacity duration-200"
+    ></div>
+  </Teleport>
+
   <div class="rounded-lg bg-white p-4">
     <div class="relative flex w-full flex-col items-center justify-center bg-black">
       <div
@@ -202,11 +218,6 @@ function getCameraContainerStyle() {
         >
           <X class="h-5 w-5" />
         </button>
-
-        <div
-          v-if="isFlashing"
-          class="pointer-events-none absolute inset-0 bg-white opacity-95 transition-opacity duration-200"
-        ></div>
 
         <div
           v-if="countdown !== null && isCountingDown"

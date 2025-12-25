@@ -83,7 +83,7 @@ function onCloseCamera() {
 
       <div class="order-2 lg:order-2 lg:col-span-8">
         <button
-          v-if="!showCamera"
+          v-if="!showCamera && photos.length < selectedLayout.photo_count"
           @click="showCamera = true"
           class="mb-8 inline-flex cursor-pointer items-center gap-3 rounded-full bg-blue-100/70 px-5 py-3 font-semibold text-blue-600 shadow-sm ring-1 ring-blue-200 backdrop-blur transition hover:bg-blue-100"
         >
