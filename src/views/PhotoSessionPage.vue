@@ -1,17 +1,21 @@
 <script setup lang="ts">
 import Camera from '@/components/Camera.vue';
 import PhotoStrip from '@/components/PhotoStrip.vue';
+import { colors } from '@/lib/color';
 import { Photo } from '@/lib/photo';
 import { usePhotoboothStore } from '@/stores/storePhotobooth';
-import { Camera as CameraIcon, Download } from 'lucide-vue-next';
 import { toPng } from 'html-to-image';
+import { Camera as CameraIcon, Download } from 'lucide-vue-next';
+import { storeToRefs } from 'pinia';
 import { nextTick, ref } from 'vue';
 import { useRouter } from 'vue-router';
 
 const router = useRouter();
-const { selectedLayout } = usePhotoboothStore();
+const photoboothStore = usePhotoboothStore();
+const { selectedLayout, selectedColor } = storeToRefs(photoboothStore);
+const { setSelectedColor } = photoboothStore;
 
-if (!selectedLayout) {
+if (!selectedLayout.value) {
   router.push({ name: 'choose-layout' });
 }
 
@@ -28,7 +32,7 @@ const onCapture = (dataUrl: string) => {
   };
   photos.value.push(newPhoto);
 
-  if (photos.value.length >= selectedLayout.photo_count) {
+  if (photos.value.length >= selectedLayout.value.photo_count) {
     showCamera.value = false;
   }
 };
@@ -43,7 +47,7 @@ function onCloseCamera() {
 
 async function downloadPhotoStrip() {
   if (!selectedLayout) return;
-  if (photos.value.length < selectedLayout.photo_count) return;
+  if (photos.value.length < selectedLayout.value.photo_count) return;
   if (!stripRef.value) return;
 
   if (isDownloading.value) return;
@@ -62,7 +66,7 @@ async function downloadPhotoStrip() {
     });
 
     const timestamp = new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-');
-    const filename = `PhotoIn-${selectedLayout.type}-${timestamp}.png`;
+    const filename = `PhotoIn-${selectedLayout.value.type}-${timestamp}.png`;
 
     const link = document.createElement('a');
     link.href = dataUrl;
@@ -79,7 +83,7 @@ async function downloadPhotoStrip() {
 </script>
 
 <template>
-  <div v-if="selectedLayout" class="mx-auto mt-32 flex h-full w-full max-w-7xl flex-col">
+  <div v-if="selectedLayout" class="mx-auto mt-32 flex h-full w-full max-w-7xl flex-col px-4 md:px-0">
     <div class="mb-4 text-center">
       <span
         class="inline-flex items-center gap-2 rounded-full bg-blue-100/80 px-4 py-1.5 text-xs font-semibold tracking-wide text-blue-700 uppercase shadow-sm ring-1 ring-blue-200/70"
@@ -98,8 +102,13 @@ async function downloadPhotoStrip() {
       <div class="order-1 lg:order-1 lg:col-span-4">
         <div class="sticky top-24 flex flex-col items-center">
           <div
-            class="relative transform overflow-hidden rounded-sm border-[6px] border-white bg-blue-700/50 shadow-2xl transition-all duration-300 hover:scale-[1.02]"
+            class="relative transform overflow-hidden rounded-sm border-[6px] border-white shadow-2xl transition-all duration-300 hover:scale-[1.021]"
             :class="selectedLayout?.type.includes('strip') ? 'w-55' : 'w-[320px]'"
+            :style="
+              selectedColor.url
+                ? { backgroundImage: `url(${selectedColor.url})`, backgroundSize: 'cover', backgroundPosition: 'center' }
+                : { backgroundColor: selectedColor.hex }
+            "
             ref="stripRef"
           >
             <PhotoStrip :selectedLayout="selectedLayout" :photos="photos" :onDeletePhoto="onDeletePhoto" />
@@ -124,46 +133,69 @@ async function downloadPhotoStrip() {
       </div>
 
       <div class="order-2 lg:order-2 lg:col-span-8">
-        <button
-          v-if="!showCamera && photos.length < selectedLayout.photo_count"
-          @click="showCamera = true"
-          class="mb-8 inline-flex cursor-pointer items-center gap-3 rounded-full bg-blue-100/70 px-5 py-3 font-semibold text-blue-600 shadow-sm ring-1 ring-blue-200 backdrop-blur transition hover:bg-blue-100"
-        >
-          <CameraIcon class="h-5 w-5 text-blue-500" />
-          Take Photos
-        </button>
+        <template v-if="!showCamera && photos.length < selectedLayout.photo_count">
+          <div class="flex justify-center md:justify-start">
+            <button
+              @click="showCamera = true"
+              class="mb-4 inline-flex cursor-pointer items-center gap-3 rounded-full bg-blue-100/70 px-5 py-3 font-semibold text-blue-600 shadow-sm ring-1 ring-blue-200 backdrop-blur transition hover:bg-blue-100"
+            >
+              <CameraIcon class="h-5 w-5 text-blue-500" />
+              Take Photos
+            </button>
+          </div>
+
+          <div class="flex flex-col gap-6">
+            <section class="rounded-2xl bg-white/70 p-6 shadow-sm ring-1 ring-slate-200 backdrop-blur">
+              <h3 class="font-poppins text-lg font-bold text-slate-900">Instructions</h3>
+              <ol class="mt-4 space-y-2 text-sm text-slate-600">
+                <li class="flex gap-3">
+                  <span
+                    class="mt-0.5 inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-blue-100 text-xs font-semibold text-blue-700 ring-1 ring-blue-200/70"
+                    >1</span
+                  >
+                  <span>Position yourself in front of the camera.</span>
+                </li>
+                <li class="flex gap-3">
+                  <span
+                    class="mt-0.5 inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-blue-100 text-xs font-semibold text-blue-700 ring-1 ring-blue-200/70"
+                    >2</span
+                  >
+                  <span>Click the capture button to take photos.</span>
+                </li>
+                <li class="flex gap-3">
+                  <span
+                    class="mt-0.5 inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-blue-100 text-xs font-semibold text-blue-700 ring-1 ring-blue-200/70"
+                    >3</span
+                  >
+                  <span>Download your photo strip when finished!</span>
+                </li>
+              </ol>
+            </section>
+          </div>
+        </template>
 
         <div v-if="showCamera" class="mb-4">
           <Camera :selectedLayout="selectedLayout" :onCapture="onCapture" :onClose="onCloseCamera" />
-        </div>
 
-        <div class="flex flex-col gap-6">
-          <section class="rounded-2xl bg-white/70 p-6 shadow-sm ring-1 ring-slate-200 backdrop-blur">
-            <h3 class="font-poppins text-lg font-bold text-slate-900">Instructions</h3>
-            <ol class="mt-4 space-y-2 text-sm text-slate-600">
-              <li class="flex gap-3">
-                <span
-                  class="mt-0.5 inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-blue-100 text-xs font-semibold text-blue-700 ring-1 ring-blue-200/70"
-                  >1</span
-                >
-                <span>Position yourself in front of the camera.</span>
-              </li>
-              <li class="flex gap-3">
-                <span
-                  class="mt-0.5 inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-blue-100 text-xs font-semibold text-blue-700 ring-1 ring-blue-200/70"
-                  >2</span
-                >
-                <span>Click the capture button to take photos.</span>
-              </li>
-              <li class="flex gap-3">
-                <span
-                  class="mt-0.5 inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-blue-100 text-xs font-semibold text-blue-700 ring-1 ring-blue-200/70"
-                  >3</span
-                >
-                <span>Download your photo strip when finished!</span>
-              </li>
-            </ol>
-          </section>
+          <div class="mt-6 flex justify-center">
+            <div class="flex w-full flex-col items-center rounded-2xl bg-white/80 p-6 shadow-lg ring-1 ring-slate-200">
+              <span class="mb-4 text-lg font-semibold text-slate-700">Choose a color:</span>
+              <div class="flex flex-wrap justify-start gap-4">
+                <button
+                  v-for="color in colors"
+                  :key="color.name"
+                  :style="color.url ? { backgroundImage: `url(${color.url})` } : { backgroundColor: color.hex }"
+                  class="h-16 w-16 cursor-pointer rounded-full border-4 border-gray-300 bg-cover bg-center shadow-lg ring-1 transition-all duration-200"
+                  :class="{
+                    'scale-110 border-blue-600 ring-blue-500': selectedColor.name === color.name,
+                    'ring-transparent': selectedColor.name !== color.name,
+                  }"
+                  @click="setSelectedColor(color)"
+                  :aria-label="color.name"
+                ></button>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>

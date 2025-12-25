@@ -1,13 +1,18 @@
 <script setup lang="ts">
 import { Photo } from '@/lib/photo';
 import { StripLayout } from '@/lib/strip_layout';
+import { usePhotoboothStore } from '@/stores/storePhotobooth';
 import { Image, X } from 'lucide-vue-next';
+import { storeToRefs } from 'pinia';
 
 const props = defineProps<{
   selectedLayout: StripLayout;
   photos: Photo[];
   onDeletePhoto: (photoId: string) => void;
 }>();
+
+const photoboothStore = usePhotoboothStore();
+const { selectedColor } = storeToRefs(photoboothStore);
 
 function getLayoutGrid() {
   switch (props.selectedLayout.type) {
@@ -27,14 +32,12 @@ function getLayoutGrid() {
 
 <template>
   <div class="bg-transparent">
-    <!-- aspect 0.333333 or 0.66666667-->
     <div
       class="relative mx-auto overflow-hidden shadow-lg"
       :style="`aspect-ratio: ${props.selectedLayout.aspect_ratio}; width: 100%`"
     >
       <div class="z-0 flex h-full flex-col">
-        <!-- options are (grid-cols-1 grid-rows-4), (grid-cols-1 grid-rows-4), (grid-cols-2 grid-rows-2), (grid-cols-2 grid-rows-3) -->
-        <div class="grid min-h-0 grow gap-1 p-2" :class="getLayoutGrid()">
+        <div class="grid min-h-0 grow gap-1 p-4" :class="getLayoutGrid()">
           <div
             v-for="(photo, index) in props.selectedLayout.photo_count"
             :key="props.photos[index]?.id || index"
@@ -47,8 +50,6 @@ function getLayoutGrid() {
                 class="photo-image h-full w-full border-2 border-white/20 object-cover shadow-sm"
                 style="transform: scaleX(-1)"
               />
-              <!-- Uncomment below if you have readonly and onDeletePhoto props -->
-
               <button
                 @click="props.onDeletePhoto(props.photos[index].id)"
                 class="absolute top-2 right-2 z-10 rounded-full bg-black/50 p-1 text-white transition-colors hover:bg-red-500"
@@ -68,8 +69,8 @@ function getLayoutGrid() {
         </div>
         <div class="pb-2 text-center">
           <p
-            class="font-serif tracking-wider text-white/90 italic"
-            style="text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3); font-size: 6px;"
+            :class="`font-serif tracking-wider ${selectedColor.labelColor} italic`"
+            style="text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3); font-size: 6px"
           >
             PhotoIn
           </p>
