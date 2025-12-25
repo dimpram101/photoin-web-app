@@ -6,7 +6,7 @@ import { ref } from 'vue';
 
 export const usePhotoboothStore = defineStore('photobooth', () => {
   const selectedLayout = ref<StripLayout | null>(null);
-  const selectedColor = ref<Color>(colors[0]);
+  const selectedColor = ref<Color>(colors[0] ?? { name: 'White', hex: '#ffffff', labelColor: 'text-black' });
   const photos = ref<Photo[]>([]);
 
   function setSelectedLayout(layout: StripLayout | null) {

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { STRIP_LAYOUTS, StripLayout } from '@/lib/strip_layout';
+import { STRIP_LAYOUTS, type StripLayout } from '@/lib/strip_layout';
 import { usePhotoboothStore } from '@/stores/storePhotobooth';
 import gsap from 'gsap';
 import { onBeforeUnmount, onMounted, ref } from 'vue';

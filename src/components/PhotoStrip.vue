@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { Photo } from '@/lib/photo';
-import { StripLayout } from '@/lib/strip_layout';
+import { type Photo } from '@/lib/photo';
+import { type StripLayout } from '@/lib/strip_layout';
 import { usePhotoboothStore } from '@/stores/storePhotobooth';
 import { Image, X } from 'lucide-vue-next';
 import { storeToRefs } from 'pinia';

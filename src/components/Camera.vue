@@ -1,6 +1,6 @@
 <!-- eslint-disable vue/multi-word-component-names -->
 <script setup lang="ts">
-import { StripLayout } from '@/lib/strip_layout';
+import { type StripLayout } from '@/lib/strip_layout';
 import { FlipHorizontal, Grid, Sparkle, X } from 'lucide-vue-next';
 import { nextTick, onMounted, onUnmounted, ref } from 'vue';
 
@@ -10,7 +10,9 @@ const props = defineProps<{
   onClose: () => void;
 }>();
 
-const filters = [
+type CameraFilter = { name: string; value: string };
+
+const filters: CameraFilter[] = [
   { name: 'Normal', value: 'none' },
   { name: 'Vintage', value: 'sepia(0.4) contrast(1.2) brightness(0.9)' },
   { name: 'Grayscale', value: 'grayscale(1)' },
@@ -27,6 +29,8 @@ const filters = [
   { name: '80s', value: 'contrast(1.1) brightness(1.1) saturate(1.5) sepia(0.2)' },
 ];
 
+const defaultFilter: CameraFilter = filters[0] ?? { name: 'Normal', value: 'none' };
+
 const videoRef = ref<HTMLVideoElement | null>(null);
 const canvasRef = ref<HTMLCanvasElement | null>(null);
 const stream = ref<MediaStream | null>(null);
@@ -34,9 +38,9 @@ const stream = ref<MediaStream | null>(null);
 const timer = ref<number>(3);
 const showGrid = ref<boolean>(false);
 const showFilterOptions = ref<boolean>(false);
-const activeFilter = ref<{ name: string; value: string } | null>(filters[0]);
+const activeFilter = ref<CameraFilter>(defaultFilter);
 const isCountingDown = ref<boolean>(false);
-const countdown = ref<number | null>(null);
+const countdown = ref<number>(0);
 const isFlashing = ref<boolean>(false);
 const isMirrored = ref<boolean>(true);
 
@@ -46,14 +50,12 @@ function startCountdown() {
   isCountingDown.value = true;
   countdown.value = timer.value;
 
-  let countdownInterval = setInterval(() => {
+  const countdownInterval = window.setInterval(() => {
     countdown.value -= 1;
 
     if (countdown.value <= 0) {
-      clearInterval(countdownInterval);
-      countdownInterval = null;
+      window.clearInterval(countdownInterval);
       isCountingDown.value = false;
-      countdown.value = 0;
       takePhoto();
     }
   }, 1000);
@@ -207,7 +209,7 @@ function getCameraContainerStyle() {
           class="h-full w-full object-cover"
           :style="{
             transform: isMirrored ? 'scaleX(-1)' : 'none',
-            filter: activeFilter ? activeFilter.value : filters[0].value,
+            filter: activeFilter.value,
           }"
         />
 
@@ -219,10 +221,7 @@ function getCameraContainerStyle() {
           <X class="h-5 w-5" />
         </button>
 
-        <div
-          v-if="countdown !== null && isCountingDown"
-          class="pointer-events-none absolute inset-0 z-10 flex items-center justify-center"
-        >
+        <div v-if="isCountingDown" class="pointer-events-none absolute inset-0 z-10 flex items-center justify-center">
           <div className="text-center">
             <div className="text-8xl font-bold text-white drop-shadow-[0_4px_4px_rgba(0,0,0,0.5)] animate-pulse">
               {{ countdown }}

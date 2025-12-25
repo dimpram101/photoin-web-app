@@ -2,7 +2,7 @@
 import Camera from '@/components/Camera.vue';
 import PhotoStrip from '@/components/PhotoStrip.vue';
 import { colors } from '@/lib/color';
-import { Photo } from '@/lib/photo';
+import { type Photo } from '@/lib/photo';
 import { usePhotoboothStore } from '@/stores/storePhotobooth';
 import { toPng } from 'html-to-image';
 import { Camera as CameraIcon, Download } from 'lucide-vue-next';
@@ -32,7 +32,7 @@ const onCapture = (dataUrl: string) => {
   };
   photos.value.push(newPhoto);
 
-  if (photos.value.length >= selectedLayout.value.photo_count) {
+  if (selectedLayout.value && photos.value.length >= selectedLayout.value.photo_count) {
     showCamera.value = false;
   }
 };
@@ -76,8 +76,9 @@ function onUploadImage(event: Event) {
 }
 
 async function downloadPhotoStrip() {
-  if (!selectedLayout) return;
-  if (photos.value.length < selectedLayout.value.photo_count) return;
+  const layout = selectedLayout.value;
+  if (!layout) return;
+  if (photos.value.length < layout.photo_count) return;
   if (!stripRef.value) return;
 
   if (isDownloading.value) return;
@@ -96,7 +97,7 @@ async function downloadPhotoStrip() {
     });
 
     const timestamp = new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-');
-    const filename = `PhotoIn-${selectedLayout.value.type}-${timestamp}.png`;
+    const filename = `PhotoIn-${layout.type}-${timestamp}.png`;
 
     const link = document.createElement('a');
     link.href = dataUrl;
