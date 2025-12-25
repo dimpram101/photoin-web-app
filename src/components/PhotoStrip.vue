@@ -34,7 +34,7 @@ function getLayoutGrid() {
     >
       <div class="z-0 flex h-full flex-col">
         <!-- options are (grid-cols-1 grid-rows-4), (grid-cols-1 grid-rows-4), (grid-cols-2 grid-rows-2), (grid-cols-2 grid-rows-3) -->
-        <div class="grid min-h-0 grow gap-2 p-4" :class="getLayoutGrid()">
+        <div class="grid min-h-0 grow gap-1 p-2" :class="getLayoutGrid()">
           <div
             v-for="(photo, index) in props.selectedLayout.photo_count"
             :key="props.photos[index]?.id || index"
@@ -52,6 +52,7 @@ function getLayoutGrid() {
               <button
                 @click="props.onDeletePhoto(props.photos[index].id)"
                 class="absolute top-2 right-2 z-10 rounded-full bg-black/50 p-1 text-white transition-colors hover:bg-red-500"
+                data-export-exclude="true"
               >
                 <X class="h-3 w-3" />
               </button>
@@ -65,10 +66,10 @@ function getLayoutGrid() {
             </template>
           </div>
         </div>
-        <div class="pb-4 text-center">
+        <div class="pb-2 text-center">
           <p
-            class="${layout.type.includes('strip') ? 'text-sm' : 'text-xl'} font-serif tracking-wider text-white/90 italic"
-            style="text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3)"
+            class="font-serif tracking-wider text-white/90 italic"
+            style="text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3); font-size: 6px;"
           >
             PhotoIn
           </p>

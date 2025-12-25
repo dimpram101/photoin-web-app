@@ -245,7 +245,7 @@ function getCameraContainerStyle() {
           >
             <div class="flex rounded-full border border-white/20 bg-black/40 p-1 backdrop-blur-md">
               <button
-                v-for="x in [3, 5, 10]"
+                v-for="x in [1, 3, 5, 10]"
                 :key="x"
                 @click="timer = x"
                 :class="timer === x ? 'bg-white/30' : 'bg-transparent'"

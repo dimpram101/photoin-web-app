@@ -4,7 +4,8 @@ import PhotoStrip from '@/components/PhotoStrip.vue';
 import { Photo } from '@/lib/photo';
 import { usePhotoboothStore } from '@/stores/storePhotobooth';
 import { Camera as CameraIcon, Download } from 'lucide-vue-next';
-import { ref } from 'vue';
+import { toPng } from 'html-to-image';
+import { nextTick, ref } from 'vue';
 import { useRouter } from 'vue-router';
 
 const router = useRouter();
@@ -16,6 +17,8 @@ if (!selectedLayout) {
 
 const showCamera = ref(false);
 const photos = ref<Photo[]>([]);
+const stripRef = ref<HTMLElement | null>(null);
+const isDownloading = ref(false);
 
 const onCapture = (dataUrl: string) => {
   const newPhoto: Photo = {
@@ -36,6 +39,42 @@ function onDeletePhoto(photoId: string) {
 
 function onCloseCamera() {
   showCamera.value = false;
+}
+
+async function downloadPhotoStrip() {
+  if (!selectedLayout) return;
+  if (photos.value.length < selectedLayout.photo_count) return;
+  if (!stripRef.value) return;
+
+  if (isDownloading.value) return;
+  isDownloading.value = true;
+
+  try {
+    await nextTick();
+
+    const dataUrl = await toPng(stripRef.value, {
+      cacheBust: true,
+      pixelRatio: 2,
+      filter: (node) => {
+        if (!(node instanceof HTMLElement)) return true;
+        return node.dataset.exportExclude !== 'true';
+      },
+    });
+
+    const timestamp = new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-');
+    const filename = `PhotoIn-${selectedLayout.type}-${timestamp}.png`;
+
+    const link = document.createElement('a');
+    link.href = dataUrl;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+  } catch (error) {
+    console.error('Failed to download photo strip:', error);
+  } finally {
+    isDownloading.value = false;
+  }
 }
 </script>
 
@@ -61,6 +100,7 @@ function onCloseCamera() {
           <div
             class="relative transform overflow-hidden rounded-sm border-[6px] border-white bg-blue-700/50 shadow-2xl transition-all duration-300 hover:scale-[1.02]"
             :class="selectedLayout?.type.includes('strip') ? 'w-55' : 'w-[320px]'"
+            ref="stripRef"
           >
             <PhotoStrip :selectedLayout="selectedLayout" :photos="photos" :onDeletePhoto="onDeletePhoto" />
           </div>
@@ -68,6 +108,8 @@ function onCloseCamera() {
           <div class="mt-8 flex w-full justify-center gap-4">
             <button
               class="flex cursor-pointer items-center gap-2 rounded-full bg-blue-400 px-6 py-2 font-semibold text-white shadow-md transition-colors hover:bg-blue-500 disabled:cursor-not-allowed disabled:bg-gray-300"
+              @click="downloadPhotoStrip"
+              :disabled="isDownloading || photos.length < selectedLayout.photo_count"
             >
               <Download class="h-5 w-5" /> Download
             </button>
