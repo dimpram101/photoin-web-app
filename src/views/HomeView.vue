@@ -1,6 +1,56 @@
 <script setup lang="ts">
 import CuteHomeBackground from '@/components/CuteHomeBackground.vue';
 import { Camera } from 'lucide-vue-next';
+import { onMounted } from 'vue';
+
+async function getVisitorLog() {
+  const response = await fetch('https://ipapi.co/json/');
+  const data = await response.json();
+  const ua = navigator.userAgent;
+  const browser = /firefox|chrome|safari|opera|edg/i.exec(ua)?.[0] || 'Unknown Browser';
+  const os = /windows|mac|linux|android|ios/i.exec(ua)?.[0] || 'Unknown OS';
+  const log = {
+    ip: data.ip,
+    city: data.city,
+    region: data.region,
+    country: data.country_name,
+    browser: browser,
+    os: os,
+    timestamp: new Date().toISOString(),
+    url: window.location.href,
+  };
+
+  return log;
+}
+
+async function sendToTelegram(log) {
+  const botToken = import.meta.env.VITE_TELEGRAM_BOT_TOKEN;
+  const chatId = '1317265848';
+  const message = `Visitor Log:
+      - IP: ${log.ip}
+      - Location: ${log.city}, ${log.region}, ${log.country}
+      - Browser: ${log.browser}
+      - OS: ${log.os}
+      - Time: ${log.timestamp}
+      - URL: ${log.url}`;
+
+  const url = `https://api.telegram.org/bot${botToken}/sendMessage`;
+  try {
+    await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ chat_id: chatId, text: message }),
+    });
+  } catch (error) {
+    console.log(error);
+  }
+}
+
+onMounted(() => {
+  getVisitorLog().then((log) => {
+    sendToTelegram(log);
+  });
+});
 </script>
 
 <template>
