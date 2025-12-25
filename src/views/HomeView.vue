@@ -42,13 +42,13 @@ import { Camera } from 'lucide-vue-next';
           📤 Easy Share
         </div>
       </div>
-      <button
-        type="button"
+      <RouterLink
+        to="/choose-layout"
         class="group mt-8 inline-flex cursor-pointer items-center gap-2 rounded-xl bg-linear-to-r from-blue-600 to-indigo-600 px-7 py-3.5 text-white shadow-lg transition-all duration-300 hover:from-blue-700 hover:to-indigo-700 hover:shadow-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
       >
         <Camera class="h-5 w-5 transition group-hover:rotate-12" />
         Start Photo Session
-      </button>
+      </RouterLink>
     </div>
   </CuteHomeBackground>
 </template>

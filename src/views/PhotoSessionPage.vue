@@ -1,7 +1,10 @@
 <script setup lang="ts">
+import Camera from '@/components/Camera.vue';
 import PhotoStrip from '@/components/PhotoStrip.vue';
+import { Photo } from '@/lib/photo';
 import { usePhotoboothStore } from '@/stores/storePhotobooth';
-import { Download } from 'lucide-vue-next';
+import { Camera as CameraIcon, Download } from 'lucide-vue-next';
+import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 
 const router = useRouter();
@@ -10,10 +13,34 @@ const { selectedLayout } = usePhotoboothStore();
 if (!selectedLayout) {
   router.push({ name: 'choose-layout' });
 }
+
+const showCamera = ref(false);
+const photos = ref<Photo[]>([]);
+
+const onCapture = (dataUrl: string) => {
+  const newPhoto: Photo = {
+    id: Date.now().toString(),
+    dataUrl,
+    timestamp: Date.now(),
+  };
+  photos.value.push(newPhoto);
+
+  if (photos.value.length >= selectedLayout.photo_count) {
+    showCamera.value = false;
+  }
+};
+
+function onDeletePhoto(photoId: string) {
+  photos.value = photos.value.filter((photo) => photo.id !== photoId);
+}
+
+function onCloseCamera() {
+  showCamera.value = false;
+}
 </script>
 
 <template>
-  <div v-if="selectedLayout" class="mx-auto mt-28 flex h-full w-full max-w-7xl flex-col">
+  <div v-if="selectedLayout" class="mx-auto mt-32 flex h-full w-full max-w-7xl flex-col">
     <div class="mb-4 text-center">
       <span
         class="inline-flex items-center gap-2 rounded-full bg-blue-100/80 px-4 py-1.5 text-xs font-semibold tracking-wide text-blue-700 uppercase shadow-sm ring-1 ring-blue-200/70"
@@ -28,24 +55,25 @@ if (!selectedLayout) {
       </h1>
     </div>
 
-    <div class="mt-8 grid grid-cols-1 items-start gap-12 lg:grid-cols-12 sm:px-6 lg:px-0">
+    <div class="mt-8 grid grid-cols-1 items-start gap-12 sm:px-6 lg:grid-cols-12 lg:px-0">
       <div class="order-1 lg:order-1 lg:col-span-4">
         <div class="sticky top-24 flex flex-col items-center">
           <div
             class="relative transform overflow-hidden rounded-sm border-[6px] border-white bg-blue-700/50 shadow-2xl transition-all duration-300 hover:scale-[1.02]"
             :class="selectedLayout?.type.includes('strip') ? 'w-55' : 'w-[320px]'"
           >
-            <PhotoStrip :selectedLayout="selectedLayout" />
+            <PhotoStrip :selectedLayout="selectedLayout" :photos="photos" :onDeletePhoto="onDeletePhoto" />
           </div>
 
           <div class="mt-8 flex w-full justify-center gap-4">
             <button
-              class="flex items-center gap-2 rounded-full bg-blue-400 px-6 py-2 font-semibold text-white shadow-md transition-colors hover:bg-blue-500 disabled:cursor-not-allowed disabled:bg-gray-300"
+              class="flex cursor-pointer items-center gap-2 rounded-full bg-blue-400 px-6 py-2 font-semibold text-white shadow-md transition-colors hover:bg-blue-500 disabled:cursor-not-allowed disabled:bg-gray-300"
             >
               <Download class="h-5 w-5" /> Download
             </button>
             <button
-              className="px-6 py-2 rounded-full bg-red-100 text-red-500 font-semibold hover:bg-red-200 transition-colors"
+              className="px-6 py-2 rounded-full bg-red-100 text-red-500 font-semibold hover:bg-red-200 transition-colors cursor-pointer"
+              @click="photos = []"
             >
               Retake
             </button>
@@ -54,6 +82,19 @@ if (!selectedLayout) {
       </div>
 
       <div class="order-2 lg:order-2 lg:col-span-8">
+        <button
+          v-if="!showCamera"
+          @click="showCamera = true"
+          class="mb-8 inline-flex cursor-pointer items-center gap-3 rounded-full bg-blue-100/70 px-5 py-3 font-semibold text-blue-600 shadow-sm ring-1 ring-blue-200 backdrop-blur transition hover:bg-blue-100"
+        >
+          <CameraIcon class="h-5 w-5 text-blue-500" />
+          Take Photos
+        </button>
+
+        <div v-if="showCamera" class="mb-4">
+          <Camera :selectedLayout="selectedLayout" :onCapture="onCapture" :onClose="onCloseCamera" />
+        </div>
+
         <div class="flex flex-col gap-6">
           <section class="rounded-2xl bg-white/70 p-6 shadow-sm ring-1 ring-slate-200 backdrop-blur">
             <h3 class="font-poppins text-lg font-bold text-slate-900">Instructions</h3>
