@@ -242,7 +242,7 @@ function onStickerClick(sticker: { id: string; url: string }) {
                     class="mt-0.5 inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-blue-100 text-xs font-semibold text-blue-700 ring-1 ring-blue-200/70"
                     >2</span
                   >
-                  <span>Click the capture button to take photos.</span>
+                  <span>Click the capture button to take a photo. Stay still until the flash disappears.</span>
                 </li>
                 <li class="flex gap-3">
                   <span

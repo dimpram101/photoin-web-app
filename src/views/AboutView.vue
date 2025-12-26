@@ -141,7 +141,7 @@ function toggleFaq(index: number) {
               rel="noopener"
             >
               <span class="font-medium">GitHub</span>
-              <span class="text-slate-400">Open link</span>
+              <span class="text-slate-400">dimpram101</span>
             </a>
             <div
               class="inline-flex items-center justify-between rounded-xl bg-white/70 px-4 py-3 text-slate-700 shadow-sm ring-1 ring-slate-200"
