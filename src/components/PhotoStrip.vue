@@ -70,7 +70,7 @@ function onMouseUp() {
 function onResizeStart(stickerId: string, event: MouseEvent) {
   event.stopPropagation();
   resizingSticker.value = stickerId;
-  
+
   const sticker = placedStickers.value.find((s) => s.id === stickerId);
   if (sticker) {
     initialSize.value = { width: sticker.width, height: sticker.height };
@@ -87,10 +87,10 @@ function onResizeMove(event: MouseEvent) {
 
   const deltaX = event.clientX - dragOffset.value.x;
   const deltaY = event.clientY - dragOffset.value.y;
-  
+
   // Use the larger delta to maintain aspect ratio
   const delta = Math.max(deltaX, deltaY);
-  
+
   const newWidth = Math.max(30, initialSize.value.width + delta);
   const newHeight = Math.max(30, initialSize.value.height + delta);
 
@@ -107,7 +107,7 @@ function onResizeUp() {
 function onRotateStart(stickerId: string, event: MouseEvent) {
   event.stopPropagation();
   rotatingSticker.value = stickerId;
-  
+
   const sticker = placedStickers.value.find((s) => s.id === stickerId);
   if (sticker && containerRef.value) {
     const target = (event.currentTarget as HTMLElement).parentElement;
@@ -117,7 +117,7 @@ function onRotateStart(stickerId: string, event: MouseEvent) {
         x: rect.left + rect.width / 2,
         y: rect.top + rect.height / 2,
       };
-      
+
       initialRotation.value = sticker.rotation;
       const angle = Math.atan2(
         event.clientY - rotationCenter.value.y,
@@ -236,7 +236,7 @@ function getLayoutGrid() {
             class="h-full w-full object-contain pointer-events-none select-none"
             draggable="false"
           />
-          
+
           <!-- Delete button -->
           <button
             @click.stop="removeSticker(sticker.id)"
@@ -245,7 +245,7 @@ function getLayoutGrid() {
           >
             <X class="h-3 w-3" />
           </button>
-          
+
           <!-- Resize handle (bottom-right corner) -->
           <div
             @mousedown.stop="(e) => onResizeStart(sticker.id, e)"
@@ -258,7 +258,7 @@ function getLayoutGrid() {
               </svg>
             </div>
           </div>
-          
+
           <!-- Rotate handle (bottom-left corner) -->
           <div
             @mousedown.stop="(e) => onRotateStart(sticker.id, e)"
