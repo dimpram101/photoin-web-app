@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import Camera from '@/components/Camera.vue';
 import PhotoStrip from '@/components/PhotoStrip.vue';
-import { colors } from '@/lib/color';
+import { colors, type Color } from '@/lib/color';
 import { type Photo } from '@/lib/photo';
-import { usePhotoboothStore } from '@/stores/storePhotobooth';
+import { stickers } from '@/lib/stickers';
+import { usePhotoboothStore, type PlacedSticker } from '@/stores/storePhotobooth';
 import { toPng } from 'html-to-image';
 import { Camera as CameraIcon, Download } from 'lucide-vue-next';
 import { storeToRefs } from 'pinia';
@@ -13,7 +14,7 @@ import { useRouter } from 'vue-router';
 const router = useRouter();
 const photoboothStore = usePhotoboothStore();
 const { selectedLayout, selectedColor } = storeToRefs(photoboothStore);
-const { setSelectedColor } = photoboothStore;
+const { setSelectedColor, addSticker, clearStickers } = photoboothStore;
 
 if (!selectedLayout.value) {
   router.push({ name: 'choose-layout' });
@@ -111,6 +112,44 @@ async function downloadPhotoStrip() {
     isDownloading.value = false;
   }
 }
+
+// Calculate if the text color should be black or white based on the background hex
+function getContrastYIQ(hex: string) {
+  let color = hex.replace('#', '');
+  if (color.length === 3) {
+    color = color
+      .split('')
+      .map((c) => c + c)
+      .join('');
+  }
+  const r = parseInt(color.substr(0, 2), 16);
+  const g = parseInt(color.substr(2, 2), 16);
+  const b = parseInt(color.substr(4, 2), 16);
+  const yiq = (r * 299 + g * 587 + b * 114) / 1000;
+  return yiq >= 128 ? 'text-black' : 'text-white';
+}
+
+function onCustomColorSelection(event: Event) {
+  const input = event.target as HTMLInputElement;
+  const hex = input.value;
+  const textColor = getContrastYIQ(hex);
+
+  setSelectedColor({ name: 'custom', hex, url: '', labelColor: textColor } as Color);
+}
+
+function onStickerClick(sticker: { id: string; url: string }) {
+  const newSticker: PlacedSticker = {
+    id: `${sticker.id}-${Date.now()}`,
+    stickerId: sticker.id,
+    url: sticker.url,
+    x: 20 + Math.random() * 30, // Random position between 20-50%
+    y: 20 + Math.random() * 30,
+    width: 60,
+    height: 60,
+    rotation: 0,
+  };
+  addSticker(newSticker);
+}
 </script>
 
 <template>
@@ -161,7 +200,12 @@ async function downloadPhotoStrip() {
             </button>
             <button
               className="px-6 py-2 rounded-full bg-red-100 text-red-500 font-semibold hover:bg-red-200 transition-colors cursor-pointer"
-              @click="photos = []"
+              @click="
+                () => {
+                  photos = [];
+                  clearStickers();
+                }
+              "
             >
               Retake
             </button>
@@ -204,6 +248,16 @@ async function downloadPhotoStrip() {
                   <span
                     class="mt-0.5 inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-blue-100 text-xs font-semibold text-blue-700 ring-1 ring-blue-200/70"
                     >3</span
+                  >
+                  <span
+                    >Add stickers by clicking them, then drag to move, use blue handle to resize, green handle to
+                    rotate.</span
+                  >
+                </li>
+                <li class="flex gap-3">
+                  <span
+                    class="mt-0.5 inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-blue-100 text-xs font-semibold text-blue-700 ring-1 ring-blue-200/70"
+                    >4</span
                   >
                   <span>Download your photo strip when finished!</span>
                 </li>
@@ -254,7 +308,50 @@ async function downloadPhotoStrip() {
                 @click="setSelectedColor(color)"
                 :aria-label="color.name"
               ></button>
+              <!-- Custom color picker -->
+              <label
+                class="flex h-16 w-16 cursor-pointer items-center justify-center rounded-full border-4 border-gray-300 bg-white shadow-lg ring-1 ring-transparent transition-all duration-200 hover:border-blue-400"
+                :class="{
+                  'scale-110 border-blue-600 ring-blue-500': selectedColor.name === 'custom',
+                }"
+                aria-label="Custom color"
+              >
+                <input
+                  type="color"
+                  class="absolute h-0 w-0 opacity-0"
+                  @input="onCustomColorSelection"
+                  :value="selectedColor.name === 'custom' ? selectedColor.hex : '#ffffff'"
+                />
+                <span
+                  class="block h-10 w-10 rounded-full border"
+                  :style="{ backgroundColor: selectedColor.name === 'custom' ? selectedColor.hex : '#ffffff' }"
+                ></span>
+              </label>
             </div>
+          </div>
+        </div>
+
+        <div class="mt-8 flex flex-col items-center rounded-2xl bg-white/80 p-6 shadow-lg ring-1 ring-slate-200">
+          <span class="mb-4 text-lg font-semibold text-slate-700">Add stickers:</span>
+          <div class="flex flex-wrap justify-start gap-4">
+            <button
+              v-for="sticker in stickers"
+              :key="sticker.url"
+              @click="onStickerClick(sticker)"
+              class="flex h-16 w-16 items-center justify-center rounded-full border-2 border-gray-200 bg-white shadow transition hover:scale-110 hover:border-blue-400 active:scale-95"
+              :aria-label="sticker.id"
+            >
+              <img :src="sticker.url" class="h-10 w-10 object-contain" />
+            </button>
+          </div>
+          <div class="mt-3 space-y-1 text-center">
+            <p class="text-xs text-slate-500">Click a sticker to add it to your photo strip.</p>
+            <p class="text-xs text-slate-500">
+              <span class="font-semibold">Hover</span> to show controls •
+              <span class="font-semibold text-blue-600">Blue</span> = Resize •
+              <span class="font-semibold text-green-600">Green</span> = Rotate •
+              <span class="font-semibold text-red-600">Red</span> = Delete
+            </p>
           </div>
         </div>
       </div>
