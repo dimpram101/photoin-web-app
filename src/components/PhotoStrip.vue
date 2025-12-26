@@ -25,30 +25,46 @@ const initialRotation = ref(0);
 const rotationCenter = ref({ x: 0, y: 0 });
 const containerRef = ref<HTMLElement | null>(null);
 
-function onMouseDown(stickerId: string, event: MouseEvent) {
+// Helper to get client coordinates from mouse or touch event
+function getClientCoords(event: MouseEvent | TouchEvent) {
+  if ('touches' in event && event.touches.length > 0) {
+    const touch = event.touches[0];
+    if (touch) {
+      return { clientX: touch.clientX, clientY: touch.clientY };
+    }
+  }
+  return { clientX: (event as MouseEvent).clientX, clientY: (event as MouseEvent).clientY };
+}
+
+// Drag handlers
+function onPointerDown(stickerId: string, event: MouseEvent | TouchEvent) {
   draggingSticker.value = stickerId;
   const target = event.currentTarget as HTMLElement;
   const rect = target.getBoundingClientRect();
+  const { clientX, clientY } = getClientCoords(event);
 
   dragOffset.value = {
-    x: event.clientX - rect.left,
-    y: event.clientY - rect.top,
+    x: clientX - rect.left,
+    y: clientY - rect.top,
   };
 
-  document.addEventListener('mousemove', onMouseMove);
-  document.addEventListener('mouseup', onMouseUp);
+  document.addEventListener('mousemove', onPointerMove);
+  document.addEventListener('mouseup', onPointerUp);
+  document.addEventListener('touchmove', onPointerMove, { passive: false });
+  document.addEventListener('touchend', onPointerUp);
   event.preventDefault();
 }
 
-function onMouseMove(event: MouseEvent) {
+function onPointerMove(event: MouseEvent | TouchEvent) {
   if (!draggingSticker.value || !containerRef.value) return;
 
   const sticker = placedStickers.value.find((s) => s.id === draggingSticker.value);
   if (!sticker) return;
 
+  const { clientX, clientY } = getClientCoords(event);
   const containerRect = containerRef.value.getBoundingClientRect();
-  const x = ((event.clientX - containerRect.left - dragOffset.value.x) / containerRect.width) * 100;
-  const y = ((event.clientY - containerRect.top - dragOffset.value.y) / containerRect.height) * 100;
+  const x = ((clientX - containerRect.left - dragOffset.value.x) / containerRect.width) * 100;
+  const y = ((clientY - containerRect.top - dragOffset.value.y) / containerRect.height) * 100;
 
   // Calculate sticker size in percentage
   const stickerWidthPercent = (sticker.width / containerRect.width) * 100;
@@ -64,41 +80,52 @@ function onMouseMove(event: MouseEvent) {
   const clampedY = Math.max(minY, Math.min(maxY, y));
 
   updateSticker(draggingSticker.value, { x: clampedX, y: clampedY });
+  event.preventDefault();
 }
 
-function onMouseUp() {
+function onPointerUp() {
   draggingSticker.value = null;
   resizingSticker.value = null;
   rotatingSticker.value = null;
-  document.removeEventListener('mousemove', onMouseMove);
-  document.removeEventListener('mouseup', onMouseUp);
+  document.removeEventListener('mousemove', onPointerMove);
+  document.removeEventListener('mouseup', onPointerUp);
+  document.removeEventListener('touchmove', onPointerMove);
+  document.removeEventListener('touchend', onPointerUp);
   document.removeEventListener('mousemove', onResizeMove);
   document.removeEventListener('mouseup', onResizeUp);
+  document.removeEventListener('touchmove', onResizeMove);
+  document.removeEventListener('touchend', onResizeUp);
   document.removeEventListener('mousemove', onRotateMove);
   document.removeEventListener('mouseup', onRotateUp);
+  document.removeEventListener('touchmove', onRotateMove);
+  document.removeEventListener('touchend', onRotateUp);
 }
 
 // Resize handlers
-function onResizeStart(stickerId: string, event: MouseEvent) {
+function onResizeStart(stickerId: string, event: MouseEvent | TouchEvent) {
   event.stopPropagation();
   resizingSticker.value = stickerId;
 
+  const { clientX, clientY } = getClientCoords(event);
   const sticker = placedStickers.value.find((s) => s.id === stickerId);
   if (sticker) {
     initialSize.value = { width: sticker.width, height: sticker.height };
-    dragOffset.value = { x: event.clientX, y: event.clientY };
+    dragOffset.value = { x: clientX, y: clientY };
   }
 
   document.addEventListener('mousemove', onResizeMove);
   document.addEventListener('mouseup', onResizeUp);
+  document.addEventListener('touchmove', onResizeMove, { passive: false });
+  document.addEventListener('touchend', onResizeUp);
   event.preventDefault();
 }
 
-function onResizeMove(event: MouseEvent) {
+function onResizeMove(event: MouseEvent | TouchEvent) {
   if (!resizingSticker.value) return;
 
-  const deltaX = event.clientX - dragOffset.value.x;
-  const deltaY = event.clientY - dragOffset.value.y;
+  const { clientX, clientY } = getClientCoords(event);
+  const deltaX = clientX - dragOffset.value.x;
+  const deltaY = clientY - dragOffset.value.y;
 
   // Use the larger delta to maintain aspect ratio
   const delta = Math.max(deltaX, deltaY);
@@ -107,19 +134,23 @@ function onResizeMove(event: MouseEvent) {
   const newHeight = Math.max(30, initialSize.value.height + delta);
 
   updateSticker(resizingSticker.value, { width: newWidth, height: newHeight });
+  event.preventDefault();
 }
 
 function onResizeUp() {
   resizingSticker.value = null;
   document.removeEventListener('mousemove', onResizeMove);
   document.removeEventListener('mouseup', onResizeUp);
+  document.removeEventListener('touchmove', onResizeMove);
+  document.removeEventListener('touchend', onResizeUp);
 }
 
 // Rotate handlers
-function onRotateStart(stickerId: string, event: MouseEvent) {
+function onRotateStart(stickerId: string, event: MouseEvent | TouchEvent) {
   event.stopPropagation();
   rotatingSticker.value = stickerId;
 
+  const { clientX, clientY } = getClientCoords(event);
   const sticker = placedStickers.value.find((s) => s.id === stickerId);
   if (sticker && containerRef.value) {
     const target = (event.currentTarget as HTMLElement).parentElement;
@@ -132,8 +163,8 @@ function onRotateStart(stickerId: string, event: MouseEvent) {
 
       initialRotation.value = sticker.rotation;
       const angle = Math.atan2(
-        event.clientY - rotationCenter.value.y,
-        event.clientX - rotationCenter.value.x
+        clientY - rotationCenter.value.y,
+        clientX - rotationCenter.value.x
       );
       dragOffset.value = { x: angle * (180 / Math.PI), y: 0 };
     }
@@ -141,26 +172,32 @@ function onRotateStart(stickerId: string, event: MouseEvent) {
 
   document.addEventListener('mousemove', onRotateMove);
   document.addEventListener('mouseup', onRotateUp);
+  document.addEventListener('touchmove', onRotateMove, { passive: false });
+  document.addEventListener('touchend', onRotateUp);
   event.preventDefault();
 }
 
-function onRotateMove(event: MouseEvent) {
+function onRotateMove(event: MouseEvent | TouchEvent) {
   if (!rotatingSticker.value) return;
 
+  const { clientX, clientY } = getClientCoords(event);
   const angle = Math.atan2(
-    event.clientY - rotationCenter.value.y,
-    event.clientX - rotationCenter.value.x
+    clientY - rotationCenter.value.y,
+    clientX - rotationCenter.value.x
   );
   const currentAngle = angle * (180 / Math.PI);
   const rotation = initialRotation.value + (currentAngle - dragOffset.value.x);
 
   updateSticker(rotatingSticker.value, { rotation });
+  event.preventDefault();
 }
 
 function onRotateUp() {
   rotatingSticker.value = null;
   document.removeEventListener('mousemove', onRotateMove);
   document.removeEventListener('mouseup', onRotateUp);
+  document.removeEventListener('touchmove', onRotateMove);
+  document.removeEventListener('touchend', onRotateUp);
 }
 
 function getLayoutGrid() {
@@ -241,7 +278,11 @@ function getLayoutGrid() {
           zIndex: 10,
         }"
       >
-        <div class="relative w-full h-full cursor-move" @mousedown="(e) => onMouseDown(sticker.id, e)">
+        <div
+          class="relative w-full h-full cursor-move touch-none"
+          @mousedown="(e) => onPointerDown(sticker.id, e)"
+          @touchstart="(e) => onPointerDown(sticker.id, e)"
+        >
           <img
             :src="sticker.url"
             :alt="`Sticker ${sticker.stickerId}`"
@@ -252,7 +293,8 @@ function getLayoutGrid() {
           <!-- Delete button -->
           <button
             @click.stop="removeSticker(sticker.id)"
-            class="absolute -top-2 -right-2 z-20 rounded-full bg-red-500 p-1 text-white shadow-lg transition-colors hover:bg-red-600 opacity-0 group-hover:opacity-100"
+            @touchend.stop="removeSticker(sticker.id)"
+            class="absolute -top-2 -right-2 z-20 rounded-full bg-red-500 p-1 text-white shadow-lg transition-colors hover:bg-red-600 opacity-0 group-hover:opacity-100 md:opacity-0 max-md:opacity-100"
             data-export-exclude="true"
           >
             <X class="h-3 w-3" />
@@ -261,11 +303,12 @@ function getLayoutGrid() {
           <!-- Resize handle (bottom-right corner) -->
           <div
             @mousedown.stop="(e) => onResizeStart(sticker.id, e)"
-            class="absolute -bottom-2 -right-2 z-20 w-6 h-6 bg-blue-500 rounded-full border-2 border-white shadow-lg cursor-nwse-resize opacity-0 group-hover:opacity-100 transition-opacity"
+            @touchstart.stop="(e) => onResizeStart(sticker.id, e)"
+            class="absolute -bottom-2 -right-2 z-20 w-8 h-8 bg-blue-500 rounded-full border-2 border-white shadow-lg cursor-nwse-resize opacity-0 group-hover:opacity-100 transition-opacity md:w-6 md:h-6 md:opacity-0 max-md:opacity-100"
             data-export-exclude="true"
           >
             <div class="absolute inset-0 flex items-center justify-center">
-              <svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg class="w-4 h-4 md:w-3 md:h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5v-4m0 4h-4m4 0l-5-5" />
               </svg>
             </div>
@@ -274,11 +317,12 @@ function getLayoutGrid() {
           <!-- Rotate handle (bottom-left corner) -->
           <div
             @mousedown.stop="(e) => onRotateStart(sticker.id, e)"
-            class="absolute -bottom-2 -left-2 z-20 w-6 h-6 bg-green-500 rounded-full border-2 border-white shadow-lg cursor-grab active:cursor-grabbing opacity-0 group-hover:opacity-100 transition-opacity"
+            @touchstart.stop="(e) => onRotateStart(sticker.id, e)"
+            class="absolute -bottom-2 -left-2 z-20 w-8 h-8 bg-green-500 rounded-full border-2 border-white shadow-lg cursor-grab active:cursor-grabbing opacity-0 group-hover:opacity-100 transition-opacity md:w-6 md:h-6 md:opacity-0 max-md:opacity-100"
             data-export-exclude="true"
           >
             <div class="absolute inset-0 flex items-center justify-center">
-              <svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg class="w-4 h-4 md:w-3 md:h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
               </svg>
             </div>
