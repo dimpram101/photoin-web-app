@@ -43,13 +43,25 @@ function onMouseDown(stickerId: string, event: MouseEvent) {
 function onMouseMove(event: MouseEvent) {
   if (!draggingSticker.value || !containerRef.value) return;
 
+  const sticker = placedStickers.value.find((s) => s.id === draggingSticker.value);
+  if (!sticker) return;
+
   const containerRect = containerRef.value.getBoundingClientRect();
   const x = ((event.clientX - containerRect.left - dragOffset.value.x) / containerRect.width) * 100;
   const y = ((event.clientY - containerRect.top - dragOffset.value.y) / containerRect.height) * 100;
 
-  // Clamp values to keep sticker within bounds
-  const clampedX = Math.max(0, Math.min(95, x));
-  const clampedY = Math.max(0, Math.min(95, y));
+  // Calculate sticker size in percentage
+  const stickerWidthPercent = (sticker.width / containerRect.width) * 100;
+  const stickerHeightPercent = (sticker.height / containerRect.height) * 100;
+
+  // Allow sticker to go halfway out of bounds on each side
+  const minX = -(stickerWidthPercent / 2);
+  const maxX = 100 - (stickerWidthPercent / 2);
+  const minY = -(stickerHeightPercent / 2);
+  const maxY = 100 - (stickerHeightPercent / 2);
+
+  const clampedX = Math.max(minX, Math.min(maxX, x));
+  const clampedY = Math.max(minY, Math.min(maxY, y));
 
   updateSticker(draggingSticker.value, { x: clampedX, y: clampedY });
 }
