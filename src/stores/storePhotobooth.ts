@@ -48,10 +48,16 @@ export const usePhotoboothStore = defineStore('photobooth', () => {
     placedStickers.value.push(sticker);
   }
 
-  function updateSticker(stickerId: string, updates: Partial<PlacedSticker>) {
+  function updateSticker(
+    stickerId: string,
+    updates: Partial<Pick<PlacedSticker, 'x' | 'y' | 'width' | 'height' | 'rotation'>>
+  ) {
     const index = placedStickers.value.findIndex((s) => s.id === stickerId);
     if (index !== -1) {
-      placedStickers.value[index] = { ...placedStickers.value[index], ...updates };
+      const current = placedStickers.value[index];
+      if (!current) return;
+
+      placedStickers.value[index] = { ...current, ...updates };
     }
   }
 
