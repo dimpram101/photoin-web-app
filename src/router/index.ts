@@ -1,4 +1,8 @@
 import MainLayout from '@/layouts/MainLayout.vue';
+import AboutView from '@/views/AboutView.vue';
+import ChooseLayoutPage from '@/views/ChooseLayoutPage.vue';
+import PhotoSessionPage from '@/views/PhotoSessionPage.vue';
+import PrivacyPage from '@/views/PrivacyPage.vue';
 import { createRouter, createWebHistory } from 'vue-router';
 import HomeView from '../views/HomeView.vue';
 
@@ -20,22 +24,22 @@ const router = createRouter({
         {
           path: '/about',
           name: 'about',
-          component: () => import('@/views/AboutView.vue'),
+          component: AboutView,
         },
         {
           path: '/privacy-policy',
           name: 'privacy-policy',
-          component: () => import('@/views/PrivacyPage.vue'),
+          component: PrivacyPage,
         },
         {
           path: '/choose-layout',
           name: 'choose-layout',
-          component: () => import('@/views/ChooseLayoutPage.vue'),
+          component: ChooseLayoutPage,
         },
         {
           path: '/photo-session',
           name: 'photo-session',
-          component: () => import('@/views/PhotoSessionPage.vue'),
+          component: PhotoSessionPage,
         },
       ],
     },
